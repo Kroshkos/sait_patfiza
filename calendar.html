@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>События и мероприятия</title>
+    <style>
+       
+        @font-face{
+            font-family: 'cal';
+            src: url(assets/fonts/calendar.ttf)
+            format('ttf');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+}
+
+.header {
+    background-color: #2c3e50;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+.month-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 400px;
+    margin: 10px auto;
+    gap: 20px;
+}
+
+#current-month {
+    display: inline-block;
+    text-align: center;
+    min-width: 160px;
+    max-width: 160px;
+    font-size: 1.2em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.month-navigation button {
+    flex-shrink: 0;
+    padding: 10px 20px;
+    font-size: 1.1em;
+    cursor: pointer;
+    border: 1px solid #cccccc;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+.month-navigation button:hover {
+    background-color: #e2e6ea;
+}
+
+.calendar {
+    display: table;
+    margin: 40px auto; /* Убедитесь, что таблица центрирована */
+    border-collapse: collapse;
+    width: 90%; /* Использование 90% ширины для центрирования */
+    max-width: 800px;
+    border: 2px solid #cccccc;
+}
+
+.calendar th, .calendar td {
+    border: 1px solid #cccccc;
+    width: 14.28%;
+    height: 70px;
+    text-align: center;
+    vertical-align: top;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.event {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 60px;
+    height: 16px;
+    padding: 2px;
+    background-color: #a5d6a7;
+    border-radius: 3px;
+    font-size: 0.75em;
+    line-height: 16px;
+    margin-bottom: 5px; /* Добавлен отступ снизу между событиями */
+}
+
+
+.calendar th {
+    background-color: #f39c12;
+    font-weight: bold;
+    color: #000;
+}
+.tooltip {
+    position: absolute;
+    width: 175px;
+    height: auto; /* Изменяем высоту на auto для адаптивности */
+    background-color: #ff6f61; /* Цвет фона */
+    display: none;
+    pointer-events: none;
+    z-index: 1000;
+    border-radius: 10px;
+    opacity: 0; /* Начальная прозрачность */
+    transition: opacity 0.3s ease-in; /* Переход только для появления */
+    padding: 10px; /* Добавляем отступы внутри прямоугольника */
+    color: white; /* Цвет текста */
+    text-align: center; /* Центрируем текст */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Добавляем тень для лучшего визуального эффекта */
+}
+
+
+
+/* Медиазапросы для мобильных устройств */
+@media (max-width: 600px) {
+    .header {
+        font-size: 1.5em;
+    }
+
+    .month-navigation {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .month-navigation button {
+        padding: 6px 12px;
+        font-size: 0.9em;
+    }
+
+    #current-month {
+        font-size: 0.9em;
+        min-width: 100px;
+        max-width: 100px;
+    }
+
+    .calendar {
+        margin: 60px auto; /* Центрируем календарь с отступами сверху и снизу */
+        width: 95%; /* Используем 95% ширины для лучшего центрирования */
+    }
+
+    .calendar th, .calendar td {
+        height: 50px;
+        font-size: 0.9em;
+    }
+
+    .event {
+        max-width: 50px;
+        font-size: 0.7em;
+        line-height: 14px;
+    }
+}
+
+
+    </style>
+</head>
+<body>
+
+    <div class="header">События и мероприятия</div>
+
+    <div class="month-navigation">
+        <button onclick="changeMonth(-1)">&#9664; Предыдущий месяц</button>
+        <span id="current-month">Октябрь 2023</span>
+        <button onclick="changeMonth(1)">Следующий месяц &#9654;</button>
+    </div>
+    
+    <div id="tooltip" class="tooltip"></div> <!-- Добавляем элемент для прямоугольника -->
+    
+    <table class="calendar" id="calendar">
+        <tr>
+            <th>Пн</th>
+            <th>Вт</th>
+            <th>Ср</th>
+            <th>Чт</th>
+            <th>Пт</th>
+            <th>Сб</th>
+            <th>Вс</th>
+        </tr>
+        <!-- Ячейки календаря будут добавлены через JavaScript -->
+    </table>
+    
+
+<script>
+   const events = {
+    '2023-10': [
+        { title: 'Событие 1', description: 'Описание события 1' },
+        { title: 'Событие 2', description: 'Описание события 2' }
+    ],
+    '2023-11': [
+        { title: 'Событие 3', description: 'Описание события 3' },
+        { title: 'Событие 4', description: 'Описание события 4' }
+    ],
+};
+
+const predefinedEvents = [
+    { month: "10", day: 10, title: "Научная конференция", description: "Приходите на научную конференцию! Здесь будет много умных (в отличие от вас) людей. Бла бла бла" },
+    { month: "10", day: 15, title: "Встреча с друзьями", description: "Время провести с друзьями." },
+    { month: "11", day: 5, title: "Концерт", description: "Не пропустите концерт!" },
+    { month: "11", day: 20, title: "День рождения", description: "Празднование дня рождения." },
+    { month: "10", day: 10, title: "Проверка", description: "Не забудьте про проверку!" }
+];
+
+    let currentDate = new Date(); 
+
+    
+    function addEvent(month, day, title, description) {
+    if (!events[month]) {
+        events[month] = {};
+    }
+    if (!events[month][day]) {
+        events[month][day] = [];
+    }
+    events[month][day].push({ title, description });
+}
+
+// Добавляем заранее определенные события
+predefinedEvents.forEach(event => {
+    addEvent(event.month, event.day, event.title, event.description);
+});
+
+
+let hideTooltipTimeout;
+
+function renderCalendar() {
+    const calendar = document.getElementById('calendar');
+    const currentMonth = currentDate.getFullYear() + '-' + String(currentDate.getMonth() + 1).padStart(2, '0');
+    document.getElementById('current-month').innerText = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+    // Удаляем все строки, кроме первой (заголовка)
+    while (calendar.rows.length > 1) {
+        calendar.deleteRow(1);
+    }
+
+    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const dayCount = lastDay.getDate();
+    const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+
+    let day = 1;
+    for (let i = 0; i < 6; i++) {
+        const row = calendar.insertRow();
+        for (let j = 0; j < 7; j++) {
+            const cell = row.insertCell();
+            if (i === 0 && j < startDay || day > dayCount) {
+                cell.classList.add('empty-cell'); // Для пустых ячеек
+            } else {
+                cell.innerHTML = `<div style="text-align: left; font-weight: bold;">${day}</div>`;
+                if (day === currentDate.getDate() && currentDate.getMonth() === new Date().getMonth() && currentDate.getFullYear() === new Date().getFullYear()) {
+                    cell.style.backgroundColor = '#ffd700'; // Выделяем текущий день цветом (золотистый)
+                }
+                const dayEvents = events[currentDate.getMonth() + 1]?.[day] || [];
+                dayEvents.forEach(event => {
+                    const eventDiv = document.createElement('div');
+                    eventDiv.className = 'event';
+                    eventDiv.textContent = event.title; // Заголовок события
+                    cell.appendChild(eventDiv);
+
+                    eventDiv.addEventListener('mouseover', function(e) {
+                        clearTimeout(hideTooltipTimeout);
+
+                        const tooltip = document.getElementById('tooltip');
+                        const rect = e.target.getBoundingClientRect();
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = (rect.right + 10) + 'px';
+                        tooltip.style.top = rect.top + 'px';
+                        tooltip.innerHTML = `<strong>${event.title}</strong><br>${event.description}`; // Заголовок и описание
+                        setTimeout(() => tooltip.style.opacity = 1, 0); // Плавное появление
+                    });
+
+                    eventDiv.addEventListener('mouseout', function() {
+                        const tooltip = document.getElementById('tooltip');
+                        tooltip.style.opacity = 0; // Резкое исчезновение
+                        tooltip.style.display = 'none';
+                    });
+                });
+                day++;
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+function changeMonth(delta) {
+    currentDate.setMonth(currentDate.getMonth() + delta);
+    renderCalendar();
+}
+
+renderCalendar();
+
+    
+</script>
+
+</body>
+
+</html>
